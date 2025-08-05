@@ -1,8 +1,8 @@
-from pydantic import PostgresDsn
+from pydantic import PostgresDsn, BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class DbConfig:
+class DbConfig(BaseModel):
     url: PostgresDsn
     echo: bool = False
     echo_pool: bool = False
@@ -23,6 +23,6 @@ class Settings(BaseSettings):
                                       env_prefix='APP_CONFIG__',
                                       env_nested_delimiter='__')
 
-    db_config: DbConfig
+    db: DbConfig
 
 settings = Settings()

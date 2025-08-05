@@ -7,7 +7,7 @@ from utils import camel_case_to_snake_case
 
 
 class Base(DeclarativeBase):
-    metadata = MetaData(naming_convention=settings.db_config.naming_conventions)
+    metadata = MetaData(naming_convention=settings.db.naming_conventions)
 
     __abstract__ = True
 

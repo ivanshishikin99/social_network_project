@@ -29,8 +29,8 @@ class DbHelper:
             yield session
 
 
-db_helper = DbHelper(url=str(settings.db_config.url),
-                     echo=settings.db_config.echo,
-                     echo_pool=settings.db_config.echo_pool,
-                     max_overflow=settings.db_config.max_overflow,
-                     pool_size=settings.db_config.pool_size)
+db_helper = DbHelper(url=str(settings.db.url),
+                     echo=settings.db.echo,
+                     echo_pool=settings.db.echo_pool,
+                     max_overflow=settings.db.max_overflow,
+                     pool_size=settings.db.pool_size)
