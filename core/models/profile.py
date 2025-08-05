@@ -22,8 +22,6 @@ class Profile(Base, IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin):
     bio: Mapped[str] = mapped_column(nullable=True)
     place_of_work: Mapped[str] = mapped_column(nullable=True)
     place_of_education: Mapped[str] = mapped_column(nullable=True)
-    role_access: Mapped[str] = mapped_column(nullable=False)
-    verified: Mapped[str] = mapped_column(nullable=False)
     is_public: Mapped[bool] = mapped_column(nullable=False)
     user: Mapped["User"] = relationship(back_populates="profile")
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), unique=True)
