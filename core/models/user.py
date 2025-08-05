@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class User(Base, IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin):
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
     password: Mapped[bytes] = mapped_column(nullable=False)
-    verified: Mapped[str] = mapped_column(nullable=False)
+    verified: Mapped[bool] = mapped_column(nullable=False)
     role_access: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
     profile: Mapped["Profile"] = relationship(back_populates="user")
