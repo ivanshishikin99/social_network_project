@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status, Response
+from typing import Optional
+
+from fastapi import APIRouter, Depends, status, Response, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_v1.users.crud import create_user, login_user
@@ -25,3 +27,13 @@ async def login_user_view(response: Response, username: str, password: str, sess
     response.set_cookie("refresh_token", refresh_token, httponly=True)
     return TokenModel(access_token=access_token,
                       refresh_token=refresh_token)
+
+@router.get('/logout_user')
+async def logout_user_view(response: Response, access_token: Optional[str] = Cookie(None),
+                           refresh_token: Optional[str] = Cookie(None)):
+    if access_token or refresh_token:
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+        return {"You have logged out successfully!"}
+    else:
+        return {"You are not logged in."}
