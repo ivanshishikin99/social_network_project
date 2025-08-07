@@ -16,7 +16,7 @@ class ProfileRead(BaseModel):
 
 
 class ProfileUpdateFull(ProfileRead):
-    @field_validator("first_name, last_name, country")
+    @field_validator("first_name", "last_name", "country")
     @classmethod
     def capitalize_field(cls, val: str | None) -> str | None:
         if val:
