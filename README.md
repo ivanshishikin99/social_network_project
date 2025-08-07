@@ -8,3 +8,4 @@ TO-DO LIST:
 - Profile photos
 - Email verification codes
 - Messaging
+- Comments
