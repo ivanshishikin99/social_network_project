@@ -27,4 +27,4 @@ def decode_jwt(
         ):
     return jwt.decode(jwt=token,
                       key=public_key,
-                      algorithms=algorithm)
+                      algorithms=[algorithm])
