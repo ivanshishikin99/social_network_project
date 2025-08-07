@@ -29,3 +29,7 @@ async def login_user(username: str, password: str, session: AsyncSession) -> Use
                            hashed_password=user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Wrong password.")
     return user
+
+
+async def get_user_by_id(user_id: int, session: AsyncSession) -> User | None:
+    return await session.get(User, user_id)
