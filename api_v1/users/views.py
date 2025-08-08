@@ -1,15 +1,15 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, status, Response, Cookie, HTTPException
+from fastapi import APIRouter, Depends, status, Response, Cookie, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_v1.users.crud import create_user, login_user
+from api_v1.users.crud import create_user, login_user, delete_user
 from api_v1.users.dependencies import get_user_by_id_dependency
 from api_v1.users.schemas import UserCreate, UserRead
 from core.models import User
 from mailing.email_senders import send_welcome_email
 from utils.db_helper import db_helper
-from utils.token_helpers import create_access_token, create_refresh_token
+from utils.token_helpers import create_access_token, create_refresh_token, get_user_by_token
 from utils.token_model import TokenModel
 
 router = APIRouter(prefix='/users', tags=["Users"])
@@ -48,3 +48,10 @@ async def logout_user_view(response: Response, access_token: Optional[str] = Coo
         return {"You have logged out successfully!"}
     else:
         return {"You are not logged in."}
+
+
+@router.delete("delete_user", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user_view(response: Response, request: Request, session: AsyncSession = Depends(db_helper.session_getter)):
+    user = await get_user_by_token(request=request, response=response, session=session)
+    return await delete_user(user=user, session=session)
+
