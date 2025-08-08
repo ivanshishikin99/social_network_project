@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_v1.profile.schemas import ProfileUpdatePartial, ProfileUpdateFull
-from core.models import Profile
+from core.models import Profile, User
 
 
 async def get_profile_by_user_id(user_id: int, session: AsyncSession) -> Profile:
@@ -10,6 +10,14 @@ async def get_profile_by_user_id(user_id: int, session: AsyncSession) -> Profile
     profile = await session.execute(statement)
     profile = profile.scalar_one()
     return profile
+
+
+async def get_profile_by_profile_id(profile_id: int, session: AsyncSession) -> Profile | None:
+    return await session.get(Profile, profile_id)
+
+
+async def get_user_by_profile(profile: Profile, session: AsyncSession) -> User | None:
+    return await session.get(User, profile.user_id)
 
 
 async def update_user_profile_partial(profile: Profile, profile_data: ProfileUpdatePartial, session: AsyncSession) -> Profile:
