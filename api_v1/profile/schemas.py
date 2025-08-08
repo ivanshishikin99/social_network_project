@@ -3,7 +3,7 @@ from datetime import date
 from pydantic import BaseModel, field_validator
 
 
-class ProfileRead(BaseModel):
+class ProfileReadPublic(BaseModel):
     first_name: str | None
     last_name: str | None
     country: str | None
@@ -15,7 +15,11 @@ class ProfileRead(BaseModel):
     is_public: bool
 
 
-class ProfileUpdateFull(ProfileRead):
+class ProfileReadPrivate(BaseModel):
+    username: str
+
+
+class ProfileUpdateFull(ProfileReadPublic):
     @field_validator("first_name", "last_name", "country")
     @classmethod
     def capitalize_field(cls, val: str | None) -> str | None:
