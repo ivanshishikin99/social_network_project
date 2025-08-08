@@ -17,4 +17,4 @@ class User(Base, IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin):
     verified: Mapped[bool] = mapped_column(nullable=False)
     role_access: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
-    profile: Mapped["Profile"] = relationship(back_populates="user")
+    profile: Mapped["Profile"] = relationship(back_populates="user", cascade="all, delete")
