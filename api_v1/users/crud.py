@@ -33,3 +33,9 @@ async def login_user(username: str, password: str, session: AsyncSession) -> Use
 
 async def get_user_by_id(user_id: int, session: AsyncSession) -> User | None:
     return await session.get(User, user_id)
+
+
+async def delete_user(user: User, session: AsyncSession):
+    await session.delete(user)
+    await session.commit()
+    return "Your account has successfully been deleted!"
