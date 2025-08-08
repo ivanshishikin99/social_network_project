@@ -12,7 +12,7 @@ from utils.db_helper import db_helper
 from utils.token_helpers import create_access_token, create_refresh_token
 from utils.token_model import TokenModel
 
-router = APIRouter(prefix='/users')
+router = APIRouter(prefix='/users', tags=["Users"])
 
 @router.get("/user", response_model=UserRead, status_code=status.HTTP_200_OK)
 async def get_user_by_id(user_id: int, session: AsyncSession = Depends(db_helper.session_getter),
