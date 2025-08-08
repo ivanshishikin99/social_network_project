@@ -28,6 +28,12 @@ class JWTConfig(BaseModel):
     private_key_path: Path = BASE_DIR / "certs" / "private_key.pem"
 
 
+class MailConfig(BaseModel):
+    admin_email: str = "social_network@example.com"
+    port: int = 1025
+    hostname: str = "localhost"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env',
                                       env_prefix='APP_CONFIG__',
@@ -35,5 +41,6 @@ class Settings(BaseSettings):
 
     db: DbConfig
     jwt_config: JWTConfig = JWTConfig()
+    mail_config: MailConfig = MailConfig()
 
 settings = Settings()
