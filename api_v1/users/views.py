@@ -1,3 +1,5 @@
+import uuid
+from datetime import timedelta, datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, status, Response, Cookie, HTTPException, Request
@@ -6,10 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api_v1.users.crud import create_user, login_user, delete_user
 from api_v1.users.dependencies import get_user_by_id_dependency
 from api_v1.users.schemas import UserCreate, UserRead
-from core.models import User
-from mailing.email_senders import send_welcome_email
+from core.models import User, VerificationToken
+from mailing.email_senders import send_welcome_email, send_verification_email
 from utils.db_helper import db_helper
-from utils.token_helpers import create_access_token, create_refresh_token, get_user_by_token
+from utils.token_helpers import create_access_token, create_refresh_token, get_user_by_token, \
+    generate_verification_code, get_token_by_user_email
 from utils.token_model import TokenModel
 
 router = APIRouter(prefix='/users', tags=["Users"])
@@ -50,8 +53,36 @@ async def logout_user_view(response: Response, access_token: Optional[str] = Coo
         return {"You are not logged in."}
 
 
-@router.delete("delete_user", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/delete_user", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user_view(response: Response, request: Request, session: AsyncSession = Depends(db_helper.session_getter)):
     user = await get_user_by_token(request=request, response=response, session=session)
     return await delete_user(user=user, session=session)
+
+
+@router.get("/send_verification_code", status_code=status.HTTP_200_OK)
+async def send_verification_code_view(response: Response, request: Request, session: AsyncSession = Depends(db_helper.session_getter)):
+    user = await get_user_by_token(request=request, response=response, session=session)
+    verification_code = generate_verification_code()
+    verification_token = VerificationToken(user_email=user.email,
+                                           token=verification_code)
+    session.add(verification_token)
+    await session.commit()
+    send_verification_email(user_id=user.id, user_email=user.email, verification_token=verification_code)
+    return {"Verification code has been sent. Please check your e-mail."}
+
+
+@router.post("/verify_email", status_code=status.HTTP_200_OK)
+async def verify_email_view(verification_code: uuid.UUID,
+                            response: Response, request: Request,
+                            session: AsyncSession = Depends(db_helper.session_getter)):
+    user = await get_user_by_token(request=request, response=response, session=session)
+    token = await get_token_by_user_email(user_email=user.email, session=session)
+    print(token.token == verification_code)
+    if token.token == verification_code:
+        user.verified = True
+        user.role_access = "Verified user"
+        await session.commit()
+        return {"Your email has been verified successfully!"}
+    return {"Wrong code."}
+
 
