@@ -22,3 +22,9 @@ def send_welcome_email(username: str, email: str):
     return send_email(recipient=email,
                       subject="Welcome to our site!",
                       body=f"Welcome to our site, {username}!")
+
+
+def send_verification_email(user_id: str, user_email: str, verification_token: str):
+    return send_email(recipient=user_email,
+                      subject="Email verification",
+                      body=f"Your verification code is {verification_token}. If this e-mail was sent by mistake just ignore it.")
