@@ -7,6 +7,7 @@ from api_v1.users.crud import create_user, login_user
 from api_v1.users.dependencies import get_user_by_id_dependency
 from api_v1.users.schemas import UserCreate, UserRead
 from core.models import User
+from mailing.email_senders import send_welcome_email
 from utils.db_helper import db_helper
 from utils.token_helpers import create_access_token, create_refresh_token
 from utils.token_model import TokenModel
@@ -19,9 +20,11 @@ async def get_user_by_id(user_id: int, session: AsyncSession = Depends(db_helper
     return user
 
 
-@router.post('/create_user')
+@router.post('/register_user', status_code=status.HTTP_200_OK)
 async def register_user_view(user_data: UserCreate, session: AsyncSession = Depends(db_helper.session_getter)):
-    return await create_user(user_data=user_data, session=session)
+    user = await create_user(user_data=user_data, session=session)
+    send_welcome_email(username=user.username, email=user.email)
+    return {"You have registered successfully!"}
 
 
 @router.post('/login_user', status_code=status.HTTP_200_OK)
