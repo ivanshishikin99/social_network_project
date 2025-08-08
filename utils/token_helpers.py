@@ -1,12 +1,14 @@
+import uuid
 from typing import Optional
 
 import requests.cookies
 from fastapi import HTTPException, status, Response, Cookie, Request
 from jwt import InvalidTokenError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from core.models import User
+from core.models import User, VerificationToken
 from utils.jwt_helpers import encode_jwt, decode_jwt
 
 
@@ -76,3 +78,14 @@ async def get_user_by_token(request: Request, response: Response, session: Async
         return user
     else:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not logged in!")
+
+
+def generate_verification_code() -> uuid.UUID:
+    return uuid.uuid4()
+
+
+async def get_token_by_user_email(user_email: int, session: AsyncSession) -> VerificationToken:
+    statement = select(VerificationToken).where(user_email==user_email)
+    token = await session.execute(statement)
+    token = token.scalar_one()
+    return token
