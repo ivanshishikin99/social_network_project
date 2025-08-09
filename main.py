@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 import uvicorn
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from middleware.register_middleware import register_middleware
 from utils.db_helper import db_helper
@@ -18,7 +19,12 @@ async def lifespan(app: FastAPI):
     yield
     await db_helper.engine.dispose()
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, title="Social Network")
+
+instrumentator = Instrumentator(should_group_status_codes=False,
+                                excluded_handlers=["/metrics"])
+
+instrumentator.instrument(app).expose(app)
 
 register_middleware(app=app)
 
