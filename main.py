@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 import uvicorn
 
+from middleware.register_middleware import register_middleware
 from utils.db_helper import db_helper
 
 from api_v1 import router as api_v1_router
@@ -18,6 +19,8 @@ async def lifespan(app: FastAPI):
     await db_helper.engine.dispose()
 
 app = FastAPI(lifespan=lifespan)
+
+register_middleware(app=app)
 
 app.include_router(api_v1_router)
 
