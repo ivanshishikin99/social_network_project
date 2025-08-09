@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_v1.posts.schemas import PostCreate, PostUpdatePartial
+from api_v1.posts.schemas import PostCreate, PostUpdatePartial, PostUpdateFull
 from core.models import Post, User
 
 
@@ -31,3 +31,12 @@ async def update_post_partial(post: Post, post_data: PostUpdatePartial, session:
                 setattr(post, k, v)
         await session.commit()
         return post
+
+
+async def update_post_full(post: Post, post_data: PostUpdateFull, session: AsyncSession, user_id: int) -> Post:
+    if user_id == post.user_id:
+        for k, v in post_data.model_dump().items():
+            setattr(post, k, v)
+        await session.commit()
+        return post
+
