@@ -9,6 +9,7 @@ from .mixins import IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin
 
 if TYPE_CHECKING:
     from .profile import Profile
+    from .post import Post
 
 
 class User(Base, IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin):
@@ -18,3 +19,4 @@ class User(Base, IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin):
     role_access: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
     profile: Mapped["Profile"] = relationship(back_populates="user", cascade="all, delete")
+    posts: Mapped[list["Post"]] = relationship()
