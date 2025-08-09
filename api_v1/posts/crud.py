@@ -24,9 +24,10 @@ async def delete_post(post: Post, session: AsyncSession, user_id: int):
         return "Post successfully deleted"
 
 
-# async def update_post_partial(post: Post, post_data: PostUpdatePartial, session: AsyncSession) -> Post:
-#     for k, v in post_data.model_dump().items():
-#         if k:
-#             setattr(post_data, k, v)
-#     await session.commit()
-#     return
+async def update_post_partial(post: Post, post_data: PostUpdatePartial, session: AsyncSession, user_id: int) -> Post:
+    if user_id == post.user_id:
+        for k, v in post_data.model_dump().items():
+            if k:
+                setattr(post, k, v)
+        await session.commit()
+        return post
