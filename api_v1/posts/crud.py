@@ -17,6 +17,13 @@ async def get_post_by_id(post_id: int, session: AsyncSession) -> Post | None:
     return await session.get(Post, post_id)
 
 
+async def delete_post(post: Post, session: AsyncSession, user_id: int):
+    if user_id == post.user_id:
+        await session.delete(post)
+        await session.commit()
+        return "Post successfully deleted"
+
+
 # async def update_post_partial(post: Post, post_data: PostUpdatePartial, session: AsyncSession) -> Post:
 #     for k, v in post_data.model_dump().items():
 #         if k:
