@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 import uvicorn
+from fastapi.responses import ORJSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from middleware.register_middleware import register_middleware
@@ -19,7 +20,7 @@ async def lifespan(app: FastAPI):
     yield
     await db_helper.engine.dispose()
 
-app = FastAPI(lifespan=lifespan, title="Social Network")
+app = FastAPI(lifespan=lifespan, title="Social Network", default_response_class=ORJSONResponse)
 
 instrumentator = Instrumentator(should_group_status_codes=False,
                                 excluded_handlers=["/metrics"])
