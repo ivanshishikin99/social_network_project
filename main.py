@@ -2,7 +2,9 @@ import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-import aioredis
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
 from fastapi import FastAPI
 
 import uvicorn
@@ -22,6 +24,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     redis = aioredis.from_url(
         f"redis://{settings.redis_config.hostname}:{settings.redis_config.port}"
     )
+    FastAPICache.init(RedisBackend(redis), prefix=settings.redis_config.prefix)
     asyncio.create_task(clean_verification_token_table())
     yield
     await db_helper.engine.dispose()
