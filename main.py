@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
+from typing import AsyncIterator
 
 from fastapi import FastAPI
 
@@ -15,7 +16,7 @@ from utils.delete_verification_token import clean_verification_token_table
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     asyncio.create_task(clean_verification_token_table())
     yield
     await db_helper.engine.dispose()
