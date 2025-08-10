@@ -2,12 +2,14 @@ import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
+import aioredis
 from fastapi import FastAPI
 
 import uvicorn
 from fastapi.responses import ORJSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
+from core.config import settings
 from middleware.register_middleware import register_middleware
 from utils.db_helper import db_helper
 
@@ -17,6 +19,9 @@ from utils.delete_verification_token import clean_verification_token_table
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    redis = aioredis.from_url(
+        f"redis://{settings.redis_config.hostname}:{settings.redis_config.port}"
+    )
     asyncio.create_task(clean_verification_token_table())
     yield
     await db_helper.engine.dispose()
