@@ -56,6 +56,12 @@ class LoggingConfig(BaseModel):
         return logging.getLevelNamesMapping()[self.log_level.upper()]
 
 
+class RedisConfig(BaseModel):
+    prefix: str = "cache"
+    hostname: str = "localhost"
+    port: int = 6379
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env',
                                       env_prefix='APP_CONFIG__',
@@ -65,6 +71,7 @@ class Settings(BaseSettings):
     jwt_config: JWTConfig = JWTConfig()
     mail_config: MailConfig = MailConfig()
     log_config: LoggingConfig = LoggingConfig()
+    redis_config: RedisConfig = RedisConfig()
 
 
 settings = Settings()
