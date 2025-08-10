@@ -39,3 +39,12 @@ async def delete_user(user: User, session: AsyncSession):
     await session.delete(user)
     await session.commit()
     return "Your account has successfully been deleted!"
+
+
+async def change_password(password: str, new_password: str, user: User, session: AsyncSession) -> User:
+    if verify_password(password, user.password):
+        user.password = hash_password(new_password)
+        await session.commit()
+        await session.refresh(user)
+        return user
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Wrong password")
