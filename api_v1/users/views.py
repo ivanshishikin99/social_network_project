@@ -3,14 +3,16 @@ from datetime import timedelta, datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, status, Response, Cookie, HTTPException, Request
+from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_v1.users.crud import create_user, login_user, delete_user
+from api_v1.users.crud import create_user, login_user, delete_user, change_password
 from api_v1.users.dependencies import get_user_by_id_dependency
 from api_v1.users.schemas import UserCreate, UserRead
 from core.models import User, VerificationToken
 from mailing.email_senders import send_welcome_email, send_verification_email
 from utils.db_helper import db_helper
+from utils.password_helpers import verify_password
 from utils.token_helpers import create_access_token, create_refresh_token, get_user_by_token, \
     generate_verification_code, get_token_by_user_email
 from utils.token_model import TokenModel
@@ -31,10 +33,10 @@ async def register_user_view(user_data: UserCreate, session: AsyncSession = Depe
 
 
 @router.post('/login_user', status_code=status.HTTP_200_OK)
-async def login_user_view(response: Response, username: str, password: str,
+async def login_user_view(response: Response, username: str, password: SecretStr,
                           session: AsyncSession = Depends(db_helper.session_getter)):
     user = await login_user(username=username,
-                            password=password,
+                            password=password.get_secret_value(),
                             session=session)
     access_token = create_access_token(user=user)
     refresh_token = create_refresh_token(user=user)
@@ -84,5 +86,12 @@ async def verify_email_view(verification_code: uuid.UUID,
         await session.commit()
         return {"Your email has been verified successfully!"}
     return {"Wrong code."}
+
+
+@router.post("/change_password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password_view(password: SecretStr, new_password: SecretStr, request: Request, response: Response,
+                               session: AsyncSession = Depends(db_helper.session_getter)):
+    user = await get_user_by_token(request=request, response=response, session=session)
+    return await change_password(password=password.get_secret_value(), new_password=new_password.get_secret_value(), user=user, session=session)
 
 
