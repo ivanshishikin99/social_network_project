@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_v1.users.schemas import UserCreate
 from core.models import User, Profile
-from utils.password_helpers import hash_password, verify_password
+from utils.password_helpers import hash_password, verify_password, validate_password
 
 
 async def create_user(user_data: UserCreate, session: AsyncSession) -> User:
@@ -43,8 +43,9 @@ async def delete_user(user: User, session: AsyncSession):
 
 async def change_password(password: str, new_password: str, user: User, session: AsyncSession) -> User:
     if verify_password(password, user.password):
-        user.password = hash_password(new_password)
-        await session.commit()
-        await session.refresh(user)
-        return user
+        if validate_password(cls=None, val=new_password):
+            user.password = hash_password(new_password)
+            await session.commit()
+            await session.refresh(user)
+            return user
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Wrong password")
