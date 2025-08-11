@@ -4,16 +4,6 @@ from utils.password_helpers import validate_password
 
 unacceptable_words = []
 
-special_symbols = [
-            "@", "#", "$", "%",
-            "&", "!", "?", "[",
-            "]", "(", ")", "£",
-            "€", "¥", "<", ">",
-            "{", "}", "+", "-",
-            "=", "\\", "/", ",",
-            ".", ":", ";", "`",
-            "#", "^", "*",
-        ]
 
 class UserCreate(BaseModel):
     username: str
