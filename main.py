@@ -16,7 +16,7 @@ from middleware.register_middleware import register_middleware
 from utils.db_helper import db_helper
 
 from api_v1 import router as api_v1_router
-from utils.delete_verification_token import clean_verification_token_table
+from utils.delete_verification_and_reset_tokens import clean_verification_and_reset_token_table
 
 
 @asynccontextmanager
@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         f"redis://{settings.redis_config.hostname}:{settings.redis_config.port}"
     )
     FastAPICache.init(RedisBackend(redis), prefix=settings.redis_config.prefix)
-    asyncio.create_task(clean_verification_token_table())
+    asyncio.create_task(clean_verification_and_reset_token_table())
     yield
     await db_helper.engine.dispose()
 
