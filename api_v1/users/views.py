@@ -9,13 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api_v1.users.crud import create_user, login_user, delete_user, change_password
 from api_v1.users.dependencies import get_user_by_id_dependency
 from api_v1.users.schemas import UserCreate, UserRead
-from core.models import User, VerificationToken
-from mailing.email_senders import send_welcome_email, send_verification_email
+from core.models import User, VerificationToken, PasswordResetToken
 from utils.db_helper import db_helper
-from utils.password_helpers import verify_password
 from utils.token_helpers import create_access_token, create_refresh_token, get_user_by_token, \
     generate_verification_code, get_token_by_user_email
-from utils.token_model import TokenModel
+from tasks.tasks import send_verification_email
+from tasks import send_welcome_email
 
 router = APIRouter(prefix='/users', tags=["Users"])
 
@@ -28,8 +27,9 @@ async def get_user_by_id(user_id: int, session: AsyncSession = Depends(db_helper
 @router.post('/register_user', status_code=status.HTTP_200_OK)
 async def register_user_view(user_data: UserCreate, session: AsyncSession = Depends(db_helper.session_getter)):
     user = await create_user(user_data=user_data, session=session)
-    send_welcome_email(username=user.username, email=user.email)
-    return {"You have registered successfully!"}
+    if user.email:
+        send_welcome_email.delay(username=user.username, email=user.email, user_id=user.id)
+        return {"You have registered successfully!"}
 
 
 @router.post('/login_user', status_code=status.HTTP_200_OK)
@@ -61,7 +61,7 @@ async def delete_user_view(response: Response, request: Request, session: AsyncS
     return await delete_user(user=user, session=session)
 
 
-@router.get("/send_verification_code", status_code=status.HTTP_200_OK)
+@router.get("/send_email_verification_code", status_code=status.HTTP_200_OK)
 async def send_verification_code_view(response: Response, request: Request, session: AsyncSession = Depends(db_helper.session_getter)):
     user = await get_user_by_token(request=request, response=response, session=session)
     verification_code = generate_verification_code()
@@ -69,7 +69,7 @@ async def send_verification_code_view(response: Response, request: Request, sess
                                            token=verification_code)
     session.add(verification_token)
     await session.commit()
-    send_verification_email(user_id=user.id, user_email=user.email, verification_token=verification_code)
+    send_verification_email.delay(user_id=user.id, user_email=user.email, verification_code=verification_code)
     return {"Verification code has been sent. Please check your e-mail."}
 
 
@@ -92,6 +92,18 @@ async def verify_email_view(verification_code: uuid.UUID,
 async def change_password_view(password: SecretStr, new_password: SecretStr, request: Request, response: Response,
                                session: AsyncSession = Depends(db_helper.session_getter)):
     user = await get_user_by_token(request=request, response=response, session=session)
-    return await change_password(password=password.get_secret_value(), new_password=new_password.get_secret_value(), user=user, session=session)
+    return await change_password(password=password.get_secret_value(), new_password=new_password.get_secret_value(),
+                                 user=user, session=session)
+
+@router.post("/send_password_reset_token", status_code=status.HTTP_200_OK)
+async def send_password_reset_token(user_email: str, session: AsyncSession = Depends(db_helper.session_getter)):
+    token = generate_verification_code()
+    password_reset_token = PasswordResetToken(user_email=user_email,
+                                              token=token)
+    session.add(password_reset_token)
+    await session.commit()
+    return {"A secret code has been sent, please check your email."}
+
+
 
 
