@@ -29,3 +29,9 @@ def send_verification_email(user_id: int, user_email: str, verification_token: u
     return send_email(recipient=user_email,
                       subject="Email verification",
                       body=f"Your verification code is {verification_token}. If this e-mail was sent by mistake just ignore it. The code is only valid for 60 minutes.")
+
+
+def send_password_reset_token_email(user_email: str, password_reset_token: uuid.UUID):
+    return send_email(recipient=user_email,
+                      subject="Password reset",
+                      body=f"Your password reset code is {password_reset_token}. This code is only valid for 60 minutes.")
