@@ -1,16 +1,10 @@
+from typing import Type, TYPE_CHECKING
+
 import bcrypt
 
 
-special_symbols = [
-            "@", "#", "$", "%",
-            "&", "!", "?", "[",
-            "]", "(", ")", "£",
-            "€", "¥", "<", ">",
-            "{", "}", "+", "-",
-            "=", "\\", "/", ",",
-            ".", ":", ";", "`",
-            "#", "^", "*",
-        ]
+if TYPE_CHECKING:
+    from api_v1.users.schemas import UserCreate
 
 
 def hash_password(password: str) -> bytes:
@@ -24,7 +18,17 @@ def verify_password(password: str, hashed_password: bytes) -> bool:
     return bcrypt.checkpw(password=encoded, hashed_password=hashed_password)
 
 
-def validate_password(cls, val: str) -> str | ValueError:
+def validate_password(cls: Type["UserCreate"] | None, val: str) -> str | ValueError:
+    special_symbols = [
+        "@", "#", "$", "%",
+        "&", "!", "?", "[",
+        "]", "(", ")", "£",
+        "€", "¥", "<", ">",
+        "{", "}", "+", "-",
+        "=", "\\", "/", ",",
+        ".", ":", ";", "`",
+        "#", "^", "*",
+    ]
     if len(val) < 8:
         raise ValueError("Your password must include at least 8 characters.")
     if len(val) > 100:
@@ -39,10 +43,10 @@ def validate_password(cls, val: str) -> str | ValueError:
             digits_flag = True
         if i.isupper():
             upper_character_flag = True
-        if not special_symbols_flag:
-            raise ValueError("Your password must include at least one special character.")
-        if not digits_flag:
-            raise ValueError("Your password must include at least one digit.")
-        if not upper_character_flag:
-            raise ValueError("Your password must include at least one upper character.")
-        return val
+    if not special_symbols_flag:
+        raise ValueError("Your password must include at least one special character.")
+    if not digits_flag:
+        raise ValueError("Your password must include at least one digit.")
+    if not upper_character_flag:
+        raise ValueError("Your password must include at least one upper character.")
+    return val
