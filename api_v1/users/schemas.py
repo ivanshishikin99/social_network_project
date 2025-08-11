@@ -1,5 +1,7 @@
 from pydantic import BaseModel, EmailStr, field_validator
 
+from utils.password_helpers import validate_password
+
 unacceptable_words = []
 
 special_symbols = [
@@ -34,28 +36,8 @@ class UserCreate(BaseModel):
 
     @field_validator("password")
     @classmethod
-    def validate_password(cls, val: str) -> str | ValueError:
-        if len(val) < 8:
-            raise ValueError("Your password must include at least 8 characters.")
-        if len(val) > 100:
-            raise ValueError("Your password must not exceed 100 characters.")
-        special_symbols_flag = False
-        digits_flag = False
-        upper_character_flag = False
-        for i in val:
-            if i in special_symbols:
-                special_symbols_flag = True
-            if i.isdigit():
-                digits_flag = True
-            if i.isupper():
-                upper_character_flag = True
-        if not special_symbols_flag:
-            raise ValueError("Your password must include at least one special character.")
-        if not digits_flag:
-            raise ValueError("Your password must include at least one digit.")
-        if not upper_character_flag:
-            raise ValueError("Your password must include at least one upper character.")
-        return val
+    def validate_model_password(cls, val: str) -> str | ValueError:
+        return validate_password(cls=cls, val=val)
 
     @field_validator("verified")
     @classmethod
