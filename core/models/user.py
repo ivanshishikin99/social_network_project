@@ -10,6 +10,7 @@ from .mixins import IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin
 if TYPE_CHECKING:
     from .profile import Profile
     from .post import Post
+    from .comment import Comment
 
 
 class User(Base, IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin):
@@ -20,3 +21,4 @@ class User(Base, IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin):
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
     profile: Mapped["Profile"] = relationship(back_populates="user", cascade="all, delete")
     posts: Mapped[list["Post"]] = relationship(cascade="all, delete")
+    comments: Mapped[list["Comment"]] = relationship(cascade="all, delete")
