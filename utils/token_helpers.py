@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from core.models import User, VerificationToken
+from core.models import User, VerificationToken, PasswordResetToken
 from utils.jwt_helpers import encode_jwt, decode_jwt
 
 
@@ -84,8 +84,15 @@ def generate_verification_code() -> uuid.UUID:
     return uuid.uuid4()
 
 
-async def get_token_by_user_email(user_email: int, session: AsyncSession) -> VerificationToken:
-    statement = select(VerificationToken).where(user_email==user_email)
+async def get_token_by_user_email(user_email: str, session: AsyncSession) -> VerificationToken:
+    statement = select(VerificationToken).where(VerificationToken.user_email == user_email)
+    token = await session.execute(statement)
+    token = token.scalar_one()
+    return token
+
+
+async def get_password_reset_token_by_user_email(user_email: str, session: AsyncSession) -> PasswordResetToken:
+    statement = select(PasswordResetToken).where(PasswordResetToken.user_email == user_email)
     token = await session.execute(statement)
     token = token.scalar_one()
     return token
