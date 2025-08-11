@@ -22,7 +22,7 @@ async def clean_verification_and_reset_token_table(interval: int = 3600):
                 await session.delete(i)
                 await session.commit()
             log.info("Verification tokens table has been cleaned.")
-            statement = select(PasswordResetToken).where(datetime.now() - VerificationToken.created_at >= timedelta(hours=1))
+            statement = select(PasswordResetToken).where(datetime.now() - PasswordResetToken.created_at >= timedelta(hours=1))
             tokens = await session.execute(statement)
             tokens = tokens.scalars().all()
             for i in tokens:
