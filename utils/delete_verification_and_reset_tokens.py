@@ -5,11 +5,11 @@ from datetime import datetime, timedelta
 from sqlalchemy import select
 
 from core.config import settings
-from core.models import VerificationToken
+from core.models import VerificationToken, PasswordResetToken
 from utils.db_helper import db_helper
 
 
-async def clean_verification_token_table(interval: int = 3600):
+async def clean_verification_and_reset_token_table(interval: int = 3600):
     logging.basicConfig(format=settings.log_config.log_format,
                         level=settings.log_config.log_level)
     log = logging.getLogger()
@@ -21,5 +21,12 @@ async def clean_verification_token_table(interval: int = 3600):
             for i in tokens:
                 await session.delete(i)
                 await session.commit()
-            log.info("Verification table has been cleaned.")
+            log.info("Verification tokens table has been cleaned.")
+            statement = select(PasswordResetToken).where(datetime.now() - VerificationToken.created_at >= timedelta(hours=1))
+            tokens = await session.execute(statement)
+            tokens = tokens.scalars().all()
+            for i in tokens:
+                await session.delete(i)
+                await session.commit()
+            log.info("Password reset tokens table has been cleaned.")
         await asyncio.sleep(delay=interval)
