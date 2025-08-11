@@ -6,14 +6,15 @@ from fastapi import APIRouter, Depends, status, Response, Cookie, HTTPException,
 from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_v1.users.crud import create_user, login_user, delete_user, change_password
-from api_v1.users.dependencies import get_user_by_id_dependency
+from api_v1.users.crud import create_user, login_user, delete_user, change_password, verify_password_reset_token
+from api_v1.users.dependencies import get_user_by_id_dependency, get_user_by_email_dependency
 from api_v1.users.schemas import UserCreate, UserRead
 from core.models import User, VerificationToken, PasswordResetToken
 from utils.db_helper import db_helper
+from utils.password_helpers import validate_password
 from utils.token_helpers import create_access_token, create_refresh_token, get_user_by_token, \
-    generate_verification_code, get_token_by_user_email
-from tasks.tasks import send_verification_email
+    generate_verification_code, get_token_by_user_email, get_password_reset_token_by_user_email
+from tasks.tasks import send_verification_email, send_password_reset_email
 from tasks import send_welcome_email
 
 router = APIRouter(prefix='/users', tags=["Users"])
@@ -95,6 +96,7 @@ async def change_password_view(password: SecretStr, new_password: SecretStr, req
     return await change_password(password=password.get_secret_value(), new_password=new_password.get_secret_value(),
                                  user=user, session=session)
 
+
 @router.post("/send_password_reset_token", status_code=status.HTTP_200_OK)
 async def send_password_reset_token(user_email: str, session: AsyncSession = Depends(db_helper.session_getter)):
     token = generate_verification_code()
@@ -102,7 +104,18 @@ async def send_password_reset_token(user_email: str, session: AsyncSession = Dep
                                               token=token)
     session.add(password_reset_token)
     await session.commit()
+    send_password_reset_email.delay(user_email=user_email, password_reset_token=token)
     return {"A secret code has been sent, please check your email."}
+
+
+@router.post("/verify_password_reset_token", status_code=status.HTTP_200_OK)
+async def verify_password_reset_token_view(new_password: str, user_email: str, password_reset_token: uuid.UUID,
+                                           session: AsyncSession = Depends(db_helper.session_getter),
+                                           user: User = Depends(get_user_by_email_dependency)):
+    return await verify_password_reset_token(new_password=new_password, user_email=user_email,
+                                             password_reset_token=password_reset_token, session=session,
+                                             user=user)
+
 
 
 
