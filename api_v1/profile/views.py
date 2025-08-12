@@ -20,7 +20,16 @@ async def get_user_profile_view(request: Request, response: Response, session: A
     return await get_profile_by_user_id(user_id=user.id, session=session)
 
 
-@router.patch("/update_user_profile_partial", response_model=ProfileReadPublic, status_code=status.HTTP_200_OK)
+@router.get("/user_profile/{profile_id}", response_model=ProfileReadPublic, status_code=status.HTTP_200_OK)
+async def get_profile_view(profile_id: int, session: AsyncSession = Depends(db_helper.session_getter),
+                           profile: Profile = Depends(get_profile_by_profile_id_dependency)) -> Profile | HTTPException:
+    if profile.is_public:
+        return profile
+    else:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="This profile is private.")
+
+
+@router.patch("/user_profile", response_model=ProfileReadPublic, status_code=status.HTTP_200_OK)
 async def update_user_profile_partial_view(profile_data: ProfileUpdatePartial, request: Request,
                                            response: Response, session: AsyncSession = Depends(db_helper.session_getter)) -> Profile | HTTPException:
     user = await get_user_by_token(response=response, session=session, request=request)
@@ -28,18 +37,9 @@ async def update_user_profile_partial_view(profile_data: ProfileUpdatePartial, r
     return await update_user_profile_partial(profile=profile, profile_data=profile_data, session=session)
 
 
-@router.put("/update_user_profile_full", response_model=ProfileReadPublic, status_code=status.HTTP_200_OK)
+@router.put("/user_profile", response_model=ProfileReadPublic, status_code=status.HTTP_200_OK)
 async def update_user_profile_full_view(profile_data: ProfileUpdateFull, request: Request,
                                         response: Response, session: AsyncSession = Depends(db_helper.session_getter)) -> Profile:
     user = await get_user_by_token(response=response, session=session, request=request)
     profile = await get_profile_by_user_id(user_id=user.id, session=session)
     return await update_user_profile_full(profile=profile, profile_data=profile_data, session=session)
-
-
-@router.get("/profile", response_model=ProfileReadPublic, status_code=status.HTTP_200_OK)
-async def get_profile_view(profile_id: int, session: AsyncSession = Depends(db_helper.session_getter),
-                           profile: Profile = Depends(get_profile_by_profile_id_dependency)) -> Profile | HTTPException:
-    if profile.is_public:
-        return profile
-    else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="This profile is private.")
