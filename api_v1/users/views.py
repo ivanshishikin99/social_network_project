@@ -19,13 +19,13 @@ from tasks import send_welcome_email
 
 router = APIRouter(prefix='/users', tags=["Users"])
 
-@router.get("/user", response_model=UserRead, status_code=status.HTTP_200_OK)
+@router.get("/user/{user_id}", response_model=UserRead, status_code=status.HTTP_200_OK)
 async def get_user_by_id(user_id: int, session: AsyncSession = Depends(db_helper.session_getter),
                          user: User = Depends(get_user_by_id_dependency)) -> User | HTTPException:
     return user
 
 
-@router.post('/register_user', status_code=status.HTTP_200_OK)
+@router.post('/user', status_code=status.HTTP_200_OK)
 async def register_user_view(user_data: UserCreate, session: AsyncSession = Depends(db_helper.session_getter)):
     user = await create_user(user_data=user_data, session=session)
     if user.email:
@@ -56,7 +56,7 @@ async def logout_user_view(response: Response, access_token: Optional[str] = Coo
         return {"You are not logged in."}
 
 
-@router.delete("/delete_user", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/user", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user_view(response: Response, request: Request, session: AsyncSession = Depends(db_helper.session_getter)):
     user = await get_user_by_token(request=request, response=response, session=session)
     return await delete_user(user=user, session=session)
