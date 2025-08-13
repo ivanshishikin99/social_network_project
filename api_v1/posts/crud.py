@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,9 +44,16 @@ async def update_post_full(post: Post, post_data: PostUpdateFull, session: Async
         return post
 
 
-async def get_comments_by_post_id(post_id: int, session: AsyncSession) -> list[Comment]:
-    statement = select(Comment).where(Comment.post_id==post_id)
+async def get_comments_by_post_id(post_id: int, session: AsyncSession) -> Sequence[Comment]:
+    statement = select(Comment).where(Comment.post_id == post_id)
     comments = await session.execute(statement)
     comments = comments.scalars().all()
     return comments
+
+
+async def get_posts_by_user_id(user_id: int, session: AsyncSession) -> Sequence[Post]:
+    statement = select(Post).where(Post.user_id == user_id)
+    posts = await session.execute(statement)
+    posts = posts.scalars().all()
+    return posts
 
