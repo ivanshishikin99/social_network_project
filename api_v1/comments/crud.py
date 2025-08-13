@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from api_v1.comments.schemas import CommentCreate
+from api_v1.comments.schemas import CommentCreate, CommentUpdatePartial, CommentUpdateFull
 from core.models import Comment, Post
 
 
@@ -27,3 +27,18 @@ async def delete_comment(user_id: int, comment: Comment, session: AsyncSession):
         await session.delete(comment)
         await session.commit()
         return {"Comment deleted successfully!"}
+
+
+async def update_comment_partial(comment: Comment, new_comment: CommentUpdatePartial, session: AsyncSession) -> Comment:
+    for k, v in new_comment.model_dump().items():
+        if k:
+            setattr(comment, k, v)
+    await session.commit()
+    return comment
+
+
+async def update_comment_full(comment: Comment, new_comment: CommentUpdateFull, session: AsyncSession) -> Comment:
+    for k, v in new_comment.model_dump().items():
+        setattr(comment, k, v)
+    await session.commit()
+    return comment
