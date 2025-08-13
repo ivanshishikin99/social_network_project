@@ -17,6 +17,7 @@ from utils.db_helper import db_helper
 
 from api_v1 import router as api_v1_router
 from utils.delete_verification_and_reset_tokens import clean_verification_and_reset_token_table
+from exception_handlers import register_error_handlers
 
 
 @asynccontextmanager
@@ -37,6 +38,8 @@ instrumentator = Instrumentator(should_group_status_codes=False,
 instrumentator.instrument(app).expose(app)
 
 register_middleware(app=app)
+
+register_error_handlers(app=app)
 
 app.include_router(api_v1_router)
 
