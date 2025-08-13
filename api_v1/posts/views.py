@@ -1,10 +1,14 @@
+from typing import Sequence
+
 from fastapi import APIRouter, status, Depends
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 from starlette.responses import Response
 
 from api_v1.comments.schemas import CommentRead
-from api_v1.posts.crud import create_post, delete_post, update_post_partial, update_post_full, get_comments_by_post_id
+from api_v1.posts.crud import create_post, delete_post, update_post_partial, update_post_full, get_comments_by_post_id, \
+    get_posts_by_user_id
 from api_v1.posts.dependencies import get_post_by_id_dependency
 from api_v1.posts.schemas import PostCreate, PostRead, PostUpdatePartial, PostUpdateFull
 from core.models import Post, Comment
@@ -53,7 +57,16 @@ async def update_post_full_view(request: Request, response: Response, post_id: i
     return await update_post_full(post=post, post_data=post_data, user_id=user.id, session=session)
 
 
+@cache(expire=60)
 @router.get("/post/{post_id}/comments", status_code=status.HTTP_200_OK, response_model=list[CommentRead])
-async def get_comments_by_post_id_view(post_id: int, session: AsyncSession = Depends(db_helper.session_getter)) -> list[Comment]:
+async def get_comments_by_post_id_view(post_id: int,
+                                       session: AsyncSession = Depends(db_helper.session_getter)) -> Sequence[Comment]:
     return await get_comments_by_post_id(post_id=post_id, session=session)
+
+
+@cache(expire=60)
+@router.get("/post/{user_id}", status_code=status.HTTP_200_OK, response_model=list[PostRead])
+async def get_posts_by_user_id_view(user_id: int,
+                                    session: AsyncSession = Depends(db_helper.session_getter)) -> Sequence[Post]:
+    return await get_posts_by_user_id(user_id=user_id, session=session)
 
