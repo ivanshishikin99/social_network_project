@@ -1,7 +1,8 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_v1.posts.schemas import PostCreate, PostUpdatePartial, PostUpdateFull
-from core.models import Post, User
+from core.models import Post, User, Comment
 
 
 async def create_post(post_data: PostCreate, session: AsyncSession, user: User) -> Post:
@@ -39,4 +40,11 @@ async def update_post_full(post: Post, post_data: PostUpdateFull, session: Async
             setattr(post, k, v)
         await session.commit()
         return post
+
+
+async def get_comments_by_post_id(post_id: int, session: AsyncSession) -> list[Comment]:
+    statement = select(Comment).where(Comment.post_id==post_id)
+    comments = await session.execute(statement)
+    comments = comments.scalars().all()
+    return comments
 
