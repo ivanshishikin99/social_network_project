@@ -5,6 +5,7 @@ __all__ = ("Base",
            "Post",
            "PasswordResetToken",
            "Comment",
+           "Message",
            )
 
 
@@ -15,3 +16,4 @@ from .verification_token import VerificationToken
 from .post import Post
 from .password_reset_token import PasswordResetToken
 from .comment import Comment
+from .message import Message
