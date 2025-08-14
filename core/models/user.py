@@ -23,4 +23,5 @@ class User(Base, IdIntPkMixin, CreatedAtMixin, UpdatedAtMixin):
     profile: Mapped["Profile"] = relationship(back_populates="user", cascade="all, delete")
     posts: Mapped[list["Post"]] = relationship(cascade="all, delete")
     comments: Mapped[list["Comment"]] = relationship(cascade="all, delete")
-    messages: Mapped[list["Message"]] = relationship(cascade="all, delete")
+    messages_sent: Mapped[list["Message"]] = relationship(cascade="all, delete", foreign_keys="Message.sent_from")
+    messages_received: Mapped[list["Message"]] = relationship(cascade="all, delete", foreign_keys="Message.sent_to")
