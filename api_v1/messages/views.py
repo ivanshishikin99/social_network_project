@@ -3,7 +3,8 @@ from typing import Sequence
 from fastapi import APIRouter, status, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_v1.messages.crud import send_message, get_all_messages_for_user
+from api_v1.messages.crud import send_message, get_all_messages_for_user, delete_message
+from api_v1.messages.dependencies import get_message_by_id_dependency
 from api_v1.messages.schemas import MessageRead, MessageCreate
 from core.models import Message
 from utils.db_helper import db_helper
@@ -25,3 +26,11 @@ async def get_all_messages_for_user_view(request: Request, response: Response,
                                          session: AsyncSession = Depends(db_helper.session_getter)) -> Sequence[Message]:
     user = await get_user_by_token(request=request, response=response, session=session)
     return await get_all_messages_for_user(user_id=user.id, session=session)
+
+
+@router.delete("/message/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_message_view(request: Request, response: Response,
+                              session: AsyncSession = Depends(db_helper.session_getter),
+                              message: Message = Depends(get_message_by_id_dependency)):
+    user = await get_user_by_token(request=request, response=response, session=session)
+    return await delete_message(user_id=user.id, message=message, session=session)
