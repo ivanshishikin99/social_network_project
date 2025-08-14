@@ -1,5 +1,6 @@
 from typing import Sequence
 
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,4 +26,12 @@ async def get_all_messages_for_user(user_id: int, session: AsyncSession) -> Sequ
 
 async def get_message_by_id(message_id: int, session: AsyncSession) -> Message | None:
     return await session.get(Message, message_id)
+
+
+async def delete_message(user_id: int, message: Message, session: AsyncSession):
+    if message.sent_from == user_id:
+        await session.delete(message)
+        await session.commit()
+        return "Message deleted successfully!"
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
