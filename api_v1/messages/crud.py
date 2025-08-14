@@ -1,3 +1,6 @@
+from typing import Sequence
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_v1.messages.schemas import MessageCreate
@@ -11,3 +14,10 @@ async def send_message(sent_from: int, sent_to: int, message: MessageCreate, ses
     session.add(message)
     await session.commit()
     return message
+
+
+async def get_all_messages_for_user(user_id: int, session: AsyncSession) -> Sequence[Message]:
+    statement = select(Message).where(Message.sent_to == user_id)
+    messages = await session.execute(statement)
+    messages = messages.scalars().all()
+    return messages
