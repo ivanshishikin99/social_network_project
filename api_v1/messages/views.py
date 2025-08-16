@@ -4,7 +4,7 @@ from fastapi import APIRouter, status, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_v1.messages.crud import send_message, get_all_messages_for_user, delete_message, update_message_partial, \
-    update_message_full
+    update_message_full, get_all_messages_sent
 from api_v1.messages.dependencies import get_message_by_id_dependency
 from api_v1.messages.schemas import MessageRead, MessageCreate, MessageUpdatePartial, MessageUpdateFull
 from core.models import Message
@@ -22,11 +22,18 @@ async def send_message_view(request: Request, response: Response,
     return await send_message(sent_from=user.id, sent_to=sent_to, session=session, message=message)
 
 
-@router.get("/", response_model=list[MessageRead], status_code=status.HTTP_200_OK)
+@router.get("/received", response_model=list[MessageRead], status_code=status.HTTP_200_OK)
 async def get_all_messages_for_user_view(request: Request, response: Response,
                                          session: AsyncSession = Depends(db_helper.session_getter)) -> Sequence[Message]:
     user = await get_user_by_token(request=request, response=response, session=session)
     return await get_all_messages_for_user(user_id=user.id, session=session)
+
+
+@router.get("/sent", response_model=list[MessageRead], status_code=status.HTTP_200_OK)
+async def get_all_messages_sent_view(request: Request, response: Response,
+                                     session: AsyncSession = Depends(db_helper.session_getter)) -> Sequence[Message]:
+    user = await get_user_by_token(request=request, response=response, session=session)
+    return await get_all_messages_sent(user_id=user.id, session=session)
 
 
 @router.delete("/message/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
