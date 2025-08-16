@@ -24,6 +24,13 @@ async def get_all_messages_for_user(user_id: int, session: AsyncSession) -> Sequ
     return messages
 
 
+async def get_all_messages_sent(user_id: int, session: AsyncSession) -> Sequence[Message]:
+    statement = select(Message).where(Message.sent_from == user_id)
+    messages = await session.execute(statement)
+    messages = messages.scalars().all()
+    return messages
+
+
 async def get_message_by_id(message_id: int, session: AsyncSession) -> Message | None:
     return await session.get(Message, message_id)
 
