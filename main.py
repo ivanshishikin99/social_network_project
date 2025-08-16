@@ -10,6 +10,8 @@ from fastapi import FastAPI
 import uvicorn
 from fastapi.responses import ORJSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from core.config import settings
 from middleware.register_middleware import register_middleware
@@ -30,7 +32,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
     await db_helper.engine.dispose()
 
-app = FastAPI(lifespan=lifespan, title="Social Network", default_response_class=ORJSONResponse)
+app = FastAPI(lifespan=lifespan, title="Social Network",
+              default_response_class=ORJSONResponse)
+
+limiter = Limiter(key_func=get_remote_address, default_limits=["20/minute"])
+
+app.state.limiter = limiter
 
 instrumentator = Instrumentator(should_group_status_codes=False,
                                 excluded_handlers=["/metrics"])
