@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_v1.messages.schemas import MessageCreate
+from api_v1.messages.schemas import MessageCreate, MessageUpdatePartial, MessageUpdateFull
 from core.models import Message
 
 
@@ -34,4 +34,24 @@ async def delete_message(user_id: int, message: Message, session: AsyncSession):
         await session.commit()
         return "Message deleted successfully!"
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+
+async def update_message_partial(user_id: int, message: Message, new_message: MessageUpdatePartial,
+                                 session: AsyncSession) -> Message:
+    if message.sent_from == user_id:
+        for k, v in new_message.model_dump().items():
+            if k:
+                setattr(message, k, v)
+    await session.commit()
+    return message
+
+
+async def update_message_full(user_id: int, message: Message, new_message: MessageUpdateFull,
+                              session: AsyncSession) -> Message:
+    if message.sent_from == user_id:
+        for k, v in new_message.model_dump().items():
+            setattr(message, k, v)
+    await session.commit()
+    return message
+
 
